@@ -30,13 +30,16 @@ class ColladaPovray():
 		# iterating through bounded geometries
 		for geometry in model.scene.objects("geometry"):
 			for primitive in geometry.primitives():
-				mesh = Povray.Mesh2(
-					Povray.Texture(Povray.Pigment(color=(0.4,0.5,0.6))),
-					vertex_vectors=Povray.List([(self.unitmeter*v[0], self.unitmeter*v[1], -self.unitmeter*v[2]) for v in primitive.vertex]),
-					face_indices=Povray.List([tuple(i) for i in primitive.vertex_index])
-				).write(file)
-				materials.add(primitive.material)
+				if len(primitive.texcoordset)>0 and len(primitive.texcoord_indexset)>0: # TODO: fix the hack
+					mesh = Povray.Mesh2(
+						#Povray.Texture(Povray.Pigment(color=(0.4,0.5,0.6))),
+						Povray.Texture("uv_mapping", Povray.Pigment(Povray.ImageMap("models/"+primitive.material.effect.diffuse.sampler.surface.image.path))),
+						vertex_vectors=Povray.List([(self.unitmeter*v[0], self.unitmeter*v[1], -self.unitmeter*v[2]) for v in primitive.vertex]),
+						face_indices=Povray.List([tuple(i) for i in primitive.vertex_index]),
+						uv_vectors=Povray.List([tuple(i) for i in primitive.texcoordset[0]]), # TODO: fix the hack
+						uv_indices=Povray.List([tuple(i) for i in primitive.texcoord_indexset[0]]) # TODO: fix the hack
+					).write(file)
+					materials.add(primitive.material)
 
 		for material in materials:
 			pass
-			#if mat:inspectMaterial( mat )
